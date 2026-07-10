@@ -16,7 +16,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIGURATION>")
 add_subdirectory(vendored/SDL EXCLUDE_FROM_ALL)
 
 # Create your game executable target as usual
-add_executable(2DECS src/main.cpp)
+add_executable(2DECS src/main.cpp src/registry.cpp)
 
 target_include_directories(2DECS PRIVATE include)
 

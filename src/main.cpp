@@ -1,9 +1,12 @@
-#include "SDL3/SDL_render.h"
+#include "components.hpp"
+#include "engine.hpp"
+#include "registry.hpp"
 #define SDL_MAIN_USE_CALLBACKS
 
 #include "SDL3/SDL_error.h"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_keycode.h"
+#include "SDL3/SDL_render.h"
 #include "SDL3/SDL_video.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_init.h>
@@ -14,6 +17,7 @@
 struct AppState {
     SDL_Window *window;
     SDL_Renderer *renderer;
+    core::Registry registry;
 
     ~AppState() {
         if (window) {
@@ -48,6 +52,11 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
                   << std::endl;
         return SDL_APP_FAILURE;
     }
+
+    // NOTE: TEMPORARY TESTING SETUP
+    core::EntityID id = state->registry.create_entity();
+    state->registry.add_component(id,
+                                  core::TransformComponent{10, 10, 20, 20, 0});
 
     return SDL_APP_CONTINUE;
 }
