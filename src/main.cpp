@@ -1,23 +1,23 @@
-#include "SDL3/SDL_timer.h"
-#include "systems/render.hpp"
-#include "systems/update_movement.hpp"
-#include <memory>
 #define SDL_MAIN_USE_CALLBACKS
 
 #include "components.hpp"
 #include "engine.hpp"
 #include "registry.hpp"
+#include "systems/render.hpp"
+#include "systems/update_movement.hpp"
 
 #include "SDL3/SDL_error.h"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_keycode.h"
 #include "SDL3/SDL_render.h"
+#include "SDL3/SDL_timer.h"
 #include "SDL3/SDL_video.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_main.h>
 #include <iostream>
+#include <memory>
 
 struct AppState {
     SDL_Window *window;
@@ -67,10 +67,17 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
 
     // NOTE: TEMPORARY TESTING SETUP
     core::EntityID id = state->registry.create_entity();
-    state->registry.add_component(id,
-                                  core::TransformComponent{10, 500, 20, 20, 0});
+    state->registry.add_component(
+        id, core::TransformComponent{10, 500, 20, 20, 45});
     state->registry.add_component(id, core::ColorComponent{255, 0, 0, 255});
-    state->registry.add_component(id, core::VelocityComponent{20, -20});
+    state->registry.add_component(id, core::VelocityComponent{30, -30});
+
+    id = state->registry.create_entity();
+    state->registry.add_component(id,
+                                  core::TransformComponent{10, 10, 20, 20, 0});
+    state->registry.add_component(id, core::ColorComponent{0, 255, 0, 255});
+    state->registry.add_component(id, core::VelocityComponent{30, 30});
+    // NOTE: TESTING END
 
     return SDL_APP_CONTINUE;
 }
