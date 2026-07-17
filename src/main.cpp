@@ -1,5 +1,6 @@
 #include "SDL3/SDL_timer.h"
 #include "systems/render.hpp"
+#include "systems/update_movement.hpp"
 #include <memory>
 #define SDL_MAIN_USE_CALLBACKS
 
@@ -67,19 +68,23 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     // NOTE: TEMPORARY TESTING SETUP
     core::EntityID id = state->registry.create_entity();
     state->registry.add_component(id,
-                                  core::TransformComponent{10, 10, 20, 20, 0});
+                                  core::TransformComponent{10, 500, 20, 20, 0});
     state->registry.add_component(id, core::ColorComponent{255, 0, 0, 255});
+    state->registry.add_component(id, core::VelocityComponent{20, -20});
 
     return SDL_APP_CONTINUE;
 }
 
 SDL_AppResult SDL_AppIterate(void *appstate) {
     AppState *state = static_cast<AppState *>(appstate);
-    Uint64 ct = SDL_GetTicks();
-    float dt = (ct - state->last_time) / 1000.0f;
-    state->last_time = dt;
+
+    // ----- DT -----
+    Uint64 ct = SDL_GetTicksNS();
+    float dt = (ct - state->last_time) / 1000000000.0f;
+    state->last_time = ct;
 
     // ----- GAME LOGIC -----
+    core::systems::update_movement(state->registry, dt);
 
     // ----- RENDER -----
     state->render_system->draw(state->registry);
