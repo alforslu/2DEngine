@@ -1,7 +1,11 @@
+#include "SDL3/SDL_timer.h"
+#include "systems/render.hpp"
+#include <memory>
+#define SDL_MAIN_USE_CALLBACKS
+
 #include "components.hpp"
 #include "engine.hpp"
 #include "registry.hpp"
-#define SDL_MAIN_USE_CALLBACKS
 
 #include "SDL3/SDL_error.h"
 #include "SDL3/SDL_events.h"
@@ -18,6 +22,10 @@ struct AppState {
     SDL_Window *window;
     SDL_Renderer *renderer;
     core::Registry registry;
+    std::unique_ptr<core::systems::RenderSystem> render_system;
+
+    // For dt
+    Uint64 last_time = 0;
 
     ~AppState() {
         if (window) {
@@ -53,19 +61,28 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
         return SDL_APP_FAILURE;
     }
 
+    state->render_system =
+        std::make_unique<core::systems::RenderSystem>(state->renderer);
+
     // NOTE: TEMPORARY TESTING SETUP
     core::EntityID id = state->registry.create_entity();
     state->registry.add_component(id,
                                   core::TransformComponent{10, 10, 20, 20, 0});
+    state->registry.add_component(id, core::ColorComponent{255, 0, 0, 255});
 
     return SDL_APP_CONTINUE;
 }
 
 SDL_AppResult SDL_AppIterate(void *appstate) {
     AppState *state = static_cast<AppState *>(appstate);
+    Uint64 ct = SDL_GetTicks();
+    float dt = (ct - state->last_time) / 1000.0f;
+    state->last_time = dt;
 
-    SDL_SetRenderDrawColor(state->renderer, 0, 0, 0, 255);
-    SDL_RenderPresent(state->renderer);
+    // ----- GAME LOGIC -----
+
+    // ----- RENDER -----
+    state->render_system->draw(state->registry);
 
     return SDL_APP_CONTINUE;
 }
