@@ -1,6 +1,5 @@
 #pragma once
 
-#include "components.hpp"
 #include "engine.hpp"
 #include "sparse.hpp"
 #include <iostream>

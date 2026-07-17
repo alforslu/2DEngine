@@ -1,6 +1,7 @@
 #pragma once
 
 #include "engine.hpp"
+#include <cassert>
 #include <vector>
 
 namespace core {
@@ -64,15 +65,19 @@ template <typename T> class SparseSet : public ISparseSet {
 
     T &get(EntityID id) {
         size_t index = this->entity_to_dense[id];
-        if (index == NO_INDEX) {
-            return nullptr;
-        }
+        assert (index != NO_INDEX && "[ERROR] Tried to get a component that does not exist.");
         return this->dense[index];
     }
 
-    bool has(EntityID id) { return this->entity_to_dense[id] != NO_INDEX; }
+    bool has(EntityID id) { 
+        if (id >= this->entity_to_dense.size()) return false; // Don't index higher
+        return this->entity_to_dense[id] != NO_INDEX; }
 
     // TODO: Should this be const return value?
     std::vector<T> &get_dense_array() { return this->dense; }
+
+    EntityID get_entity(size_t dense_index) const {
+        return this->dense_to_entity[dense_index];
+    }
 };
 } // namespace core
