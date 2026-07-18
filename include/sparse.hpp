@@ -31,7 +31,7 @@ template <typename T> class SparseSet : public ISparseSet {
         // This is dangerous if a programmer manually sets
         // the ID to something large, since it will allocate
         // a bunch of empty memory up until that ID.
-        if (id > this->entity_to_dense.size()) {
+        if (id >= this->entity_to_dense.size()) {
             this->entity_to_dense.resize(id + 128, NO_INDEX);
         }
 
@@ -42,6 +42,9 @@ template <typename T> class SparseSet : public ISparseSet {
 
     void remove(EntityID id) {
         // Swap target and last, and then remove the last
+        if (id >= this->entity_to_dense.size()) {
+            return;
+        }
         size_t target_index = this->entity_to_dense[id];
         if (target_index == NO_INDEX) {
             return; // Do nothing, not here
@@ -65,13 +68,16 @@ template <typename T> class SparseSet : public ISparseSet {
 
     T &get(EntityID id) {
         size_t index = this->entity_to_dense[id];
-        assert (index != NO_INDEX && "[ERROR] Tried to get a component that does not exist.");
+        assert(index != NO_INDEX &&
+               "[ERROR] Tried to get a component that does not exist.");
         return this->dense[index];
     }
 
-    bool has(EntityID id) { 
-        if (id >= this->entity_to_dense.size()) return false; // Don't index higher
-        return this->entity_to_dense[id] != NO_INDEX; }
+    bool has(EntityID id) {
+        if (id >= this->entity_to_dense.size())
+            return false; // Don't index higher
+        return this->entity_to_dense[id] != NO_INDEX;
+    }
 
     // TODO: Should this be const return value?
     std::vector<T> &get_dense_array() { return this->dense; }
