@@ -13,8 +13,19 @@ struct VelocityComponent {
     float dx, dy;
 };
 
+struct SpeedComponent {
+    float speed;
+};
+
 struct ColorComponent {
     Uint8 r, g, b, a;
+};
+
+struct InputComponent {
+    float move_x = 0;
+    float move_y = 0;
+    bool jump = true;
+    bool fire = true;
 };
 
 // Others:

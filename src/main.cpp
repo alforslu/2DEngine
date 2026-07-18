@@ -1,7 +1,10 @@
+#include "systems/update_controller.hpp"
+#include "systems/update_input.hpp"
 #define SDL_MAIN_USE_CALLBACKS
 
 #include "components.hpp"
 #include "engine.hpp"
+#include "input/state.hpp"
 #include "registry.hpp"
 #include "systems/render.hpp"
 #include "systems/update_movement.hpp"
@@ -23,6 +26,7 @@ struct AppState {
     SDL_Window *window;
     SDL_Renderer *renderer;
     core::Registry registry;
+    core::InputState input_state;
     std::unique_ptr<core::systems::RenderSystem> render_system;
 
     // For dt
@@ -76,7 +80,8 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char **argv) {
     state->registry.add_component(id,
                                   core::TransformComponent{10, 10, 20, 20, 0});
     state->registry.add_component(id, core::ColorComponent{0, 255, 0, 255});
-    state->registry.add_component(id, core::VelocityComponent{30, 30});
+    state->registry.add_component(id, core::SpeedComponent{30});
+    state->registry.add_component(id, core::InputComponent{});
     // NOTE: TESTING END
 
     return SDL_APP_CONTINUE;
@@ -91,22 +96,45 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     state->last_time = ct;
 
     // ----- GAME LOGIC -----
+    core::systems::update_input(state->registry, state->input_state);
+    core::systems::update_controller(state->registry, dt);
     core::systems::update_movement(state->registry, dt);
 
     // ----- RENDER -----
     state->render_system->draw(state->registry);
 
+    // ----- RESET INPUT -----
+    state->input_state.new_frame();
+
     return SDL_APP_CONTINUE;
 }
 
 SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event) {
-    if (event->type == SDL_EVENT_QUIT) {
+    AppState *state = static_cast<AppState *>(appstate);
+
+    switch (event->type) {
+    case SDL_EVENT_QUIT:
         return SDL_APP_SUCCESS;
-    }
-    if (event->type == SDL_EVENT_KEY_DOWN) {
+    case SDL_EVENT_KEY_DOWN:
+        if (!event->key.repeat) {
+            state->input_state.down.set(event->key.scancode);
+            state->input_state.pressed.set(event->key.scancode);
+        }
         if (event->key.key == SDLK_ESCAPE) {
             return SDL_APP_SUCCESS;
         }
+        break;
+
+    case SDL_EVENT_KEY_UP:
+        state->input_state.down.reset(event->key.scancode);
+        state->input_state.released.set(event->key.scancode);
+        break;
+
+    case SDL_EVENT_WINDOW_FOCUS_LOST:
+        state->input_state.down.reset(); // ← now mandatory, see below
+        state->input_state.pressed.reset();
+        state->input_state.released.reset();
+        break;
     }
 
     return SDL_APP_CONTINUE;
